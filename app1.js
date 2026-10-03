@@ -96,19 +96,39 @@ function groupsArr(){return state[mode].groups}
 function getGroup(){var gs=groupsArr();if(!gs.length)return null;if(!activeGroup||!gs.some(function(g){return g.id===activeGroup}))activeGroup=gs[0].id;return gs.find(function(g){return g.id===activeGroup})}
 function openAddGroup(){groupName.value='';studentNames.value='';groupModal.classList.add('show')}
 function closeModal(id){document.getElementById(id).classList.remove('show')}
-function addGroup(){var name=groupName.value.trim();var names=studentNames.value.split(/
-|,/).map(function(x){return x.trim()}).filter(Boolean);if(!name)return alert('اكتب اسم الفصل/الحلقة');var g={id:uid(),name:name,students:names.map(function(n){return {id:uid(),name:n}})};groupsArr().push(g);activeGroup=g.id;closeModal('groupModal');scheduleSave();render()}
+function addGroup(){var name=groupName.value.trim();var names=studentNames.value.split(/\n|,/).map(function(x){return x.trim()}).filter(Boolean);if(!name)return alert('اكتب اسم الفصل/الحلقة');var g={id:uid(),name:name,students:names.map(function(n){return {id:uid(),name:n}})};groupsArr().push(g);activeGroup=g.id;closeModal('groupModal');scheduleSave();render()}
 function deleteGroup(){var g=getGroup();if(!g||!confirm('حذف '+g.name+'؟'))return;state[mode].groups=groupsArr().filter(function(x){return x.id!==g.id});activeGroup=null;scheduleSave();render()}
-function addStudents(){var g=getGroup();if(!g)return;var txt=prompt('أدخل أسماء الطلاب، كل اسم في سطر');if(!txt)return;txt.split(/
-|,/).map(function(x){return x.trim()}).filter(Boolean).forEach(function(n){g.students.push({id:uid(),name:n})});scheduleSave();render()}
+function addStudents(){var g=getGroup();if(!g)return;var txt=prompt('أدخل أسماء الطلاب، كل اسم في سطر');if(!txt)return;txt.split(/\n|,/).map(function(x){return x.trim()}).filter(Boolean).forEach(function(n){g.students.push({id:uid(),name:n})});scheduleSave();render()}
 function delStudent(id){var g=getGroup();if(!g||!confirm('حذف الطالب؟'))return;g.students=g.students.filter(function(s){return s.id!==id});scheduleSave();render()}
 function recRoot(){var wk=weekKey(),r=state[mode].records;r[wk]=r[wk]||{};var g=getGroup();if(!g)return null;r[wk][g.id]=r[wk][g.id]||{};return r[wk][g.id]}
 function rec(sid,day){var root=recRoot();root[sid]=root[sid]||{};root[sid][day]=root[sid][day]||{};return root[sid][day]}
 function upd(sid,day,k,v){rec(sid,day)[k]=v;scheduleSave()}
-function renderGroups(){groups.innerHTML=groupsArr().map(function(g){return '<button class="'+(g.id===activeGroup?'active':'')+'" onclick="activeGroup=''+g.id+'';render()">'+esc(g.name)+' <span class="badge">'+g.students.length+'</span></button>'}).join('')}
+function selectGroup(id){activeGroup=id;render()}
+function renderGroups(){
+  groups.innerHTML=groupsArr().map(function(g){
+    return '<button class="'+(g.id===activeGroup?'active':'')+'" data-id="'+esc(g.id)+'" onclick="selectGroup(this.dataset.id)">'+esc(g.name)+' <span class="badge">'+g.students.length+'</span></button>'
+  }).join('')
+}
 function render(){ensure();var g=getGroup();renderGroups();if(!g){content.innerHTML='<div class="card"><div class="sectionTitle">ابدأ بإضافة '+(mode==='school'?'فصل':'حلقة')+'</div><div class="hint">أضف الطلاب دفعة واحدة، وبعدها تظهر لك المتابعة الأسبوعية من الأحد إلى الخميس.</div></div>';return}if(mode==='school')renderSchool(g);else renderTahfiz(g);document.querySelectorAll('.adminOnlyInline').forEach(function(x){x.style.display=currentUser&&currentUser.role==='admin'?'flex':'none'})}
 function opts(arr,val){return arr.map(function(x){return '<option value="'+x[0]+'" '+(x[0]===val?'selected':'')+'>'+x[1]+'</option>'}).join('')}
-function renderSchool(g){var root=recRoot(),h='<div class="card"><div class="row" style="justify-content:space-between"><div><div class="sectionTitle">'+esc(g.name)+'</div><div class="hint">متابعة أسبوع '+weekKey()+'</div></div><div class="row noPrint adminOnlyInline"><button onclick="addStudents()">+ طلاب</button><button class="danger" onclick="deleteGroup()">حذف الفصل</button></div></div><div class="massbar noPrint">حدد أكثر من طالب باستخدام مربعات الاختيار ثم استخدم التعديل الجماعي للحضور من خلال زر اليوم.</div><div class="tablewrap"><table><thead><tr><th>اختيار</th><th>الطالب</th>';
-days.forEach(function(d){h+='<th>'+d[1]+'<br><button onclick="massAttendance(''+d[0]+'')">حضور جماعي</button></th>'});h+='</tr></thead><tbody>';
-g.students.forEach(function(s){h+='<tr><td><input class="pick" type="checkbox" value="'+s.id+'"></td><td class="name">'+esc(s.name)+'<br><button class="danger noPrint" onclick="delStudent(''+s.id+'')">حذف</button></td>';days.forEach(function(d){var r=((root[s.id]||{})[d[0]]||{});h+='<td class="day school-day"><div class="school-inline"><select onchange="upd(''+s.id+'',''+d[0]+'','attendance',this.value)"><option value="">الحضور</option>'+opts([['present','حاضر'],['late','متأخر'],['absent','غائب'],['excused','مستأذن']],r.attendance)+'</select><select onchange="upd(''+s.id+'',''+d[0]+'','participation',this.value)"><option value="">المشاركة</option>'+opts([['3','ممتاز'],['2','جيد'],['1','يحتاج متابعة']],r.participation)+'</select><input class="quranField" placeholder="القرآن: تلاوة/حفظ" value="'+esc(r.quran||'')+'" onchange="upd(''+s.id+'',''+d[0]+'','quran',this.value)"><select onchange="upd(''+s.id+'',''+d[0]+'','behavior',this.value)"><option value="">السلوك والانضباط</option>'+opts([['3','ممتاز'],['2','جيد'],['1','ملاحظة']],r.behavior)+'</select><textarea placeholder="ملاحظات" onchange="upd(''+s.id+'',''+d[0]+'','notes',this.value)">'+esc(r.notes||'')+'</textarea></div></td>'});h+='</tr>'});h+='</tbody></table></div></div>';content.innerHTML=h}
+function renderSchool(g){
+  var root=recRoot(),h='<div class="card"><div class="row" style="justify-content:space-between"><div><div class="sectionTitle">'+esc(g.name)+'</div><div class="hint">متابعة أسبوع '+weekKey()+'</div></div><div class="row noPrint adminOnlyInline"><button onclick="addStudents()">+ طلاب</button><button class="danger" onclick="deleteGroup()">حذف الفصل</button></div></div><div class="massbar noPrint">حدد أكثر من طالب باستخدام مربعات الاختيار ثم استخدم التعديل الجماعي للحضور من خلال زر اليوم.</div><div class="tablewrap"><table><thead><tr><th>اختيار</th><th>الطالب</th>';
+  days.forEach(function(d){h+='<th>'+d[1]+'<br><button data-day="'+d[0]+'" onclick="massAttendance(this.dataset.day)">حضور جماعي</button></th>'});
+  h+='</tr></thead><tbody>';
+  g.students.forEach(function(s){
+    h+='<tr><td><input class="pick" type="checkbox" value="'+esc(s.id)+'"></td><td class="name">'+esc(s.name)+'<br><button class="danger noPrint" data-id="'+esc(s.id)+'" onclick="delStudent(this.dataset.id)">حذف</button></td>';
+    days.forEach(function(d){
+      var r=((root[s.id]||{})[d[0]]||{});
+      var attrs=' data-sid="'+esc(s.id)+'" data-day="'+d[0]+'"';
+      h+='<td class="day school-day"><div class="school-inline">'
+      +'<select'+attrs+' onchange="upd(this.dataset.sid,this.dataset.day,\'attendance\',this.value)"><option value="">الحضور</option>'+opts([['present','حاضر'],['late','متأخر'],['absent','غائب'],['excused','مستأذن']],r.attendance)+'</select>'
+      +'<select'+attrs+' onchange="upd(this.dataset.sid,this.dataset.day,\'participation\',this.value)"><option value="">المشاركة</option>'+opts([['3','ممتاز'],['2','جيد'],['1','يحتاج متابعة']],r.participation)+'</select>'
+      +'<input class="quranField"'+attrs+' placeholder="القرآن: تلاوة/حفظ" value="'+esc(r.quran||'')+'" onchange="upd(this.dataset.sid,this.dataset.day,\'quran\',this.value)">'
+      +'<select'+attrs+' onchange="upd(this.dataset.sid,this.dataset.day,\'behavior\',this.value)"><option value="">السلوك والانضباط</option>'+opts([['3','ممتاز'],['2','جيد'],['1','ملاحظة']],r.behavior)+'</select>'
+      +'<textarea'+attrs+' placeholder="ملاحظات" onchange="upd(this.dataset.sid,this.dataset.day,\'notes\',this.value)">'+esc(r.notes||'')+'</textarea></div></td>'
+    });
+    h+='</tr>'
+  });
+  h+='</tbody></table></div></div>';content.innerHTML=h
+}
 function massAttendance(day){var ids=[].slice.call(document.querySelectorAll('.pick:checked')).map(function(x){return x.value});if(!ids.length)return alert('حدد الطلاب أولًا');var v=prompt('اكتب: present للحاضر، late للمتأخر، absent للغائب، excused للمستأذن','present');if(!v)return;ids.forEach(function(id){rec(id,day).attendance=v});scheduleSave();render()}
