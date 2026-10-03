@@ -5,7 +5,11 @@ function tahfizPoints(r){
       rv=(parseFloat(r.reviewParts)||0)*(parseFloat(p.reviewPerPart)||0),
       customTotal=0,
       customVals=r.custom||{};
-  (state.tahfiz.criteria||[]).forEach(function(c){if(customVals[c.id]==='yes')customTotal+=Number((p.custom||{})[c.id]||0)});
+  (state.tahfiz.criteria||[]).forEach(function(c){
+    var pages=parseFloat(customVals[c.id])||0;
+    var perPage=Number((p.custom||{})[c.id]||0);
+    customTotal+=pages*perPage;
+  });
   return a+u+rv+customTotal
 }
 function updCustom(sid,day,id,v){var r=rec(sid,day);r.custom=r.custom||{};r.custom[id]=v;scheduleSave()}
@@ -35,7 +39,7 @@ function renderTahfiz(g){
         +'<input class="reviewParts"'+attrs+' type="number" min="0" step="0.25" placeholder="عدد الأجزاء" value="'+esc(r.reviewParts||'')+'" onchange="upd(this.dataset.sid,this.dataset.day,\'reviewParts\',this.value);'+(isAdmin?'render()':'')+'">'
         +(state.tahfiz.criteria||[]).map(function(c){
           var cv=(r.custom||{})[c.id]||'';
-          return '<select'+attrs+' data-cid="'+esc(c.id)+'" title="'+esc(c.name)+'" onchange="updCustom(this.dataset.sid,this.dataset.day,this.dataset.cid,this.value);'+(isAdmin?'render()':'')+'"><option value="">'+esc(c.name)+'</option><option value="yes" '+(cv==='yes'?'selected':'')+'>تم</option><option value="no" '+(cv==='no'?'selected':'')+'>لم يتم</option></select>'
+          return '<input'+attrs+' data-cid="'+esc(c.id)+'" type="number" min="0" step="1" title="'+esc(c.name)+'" placeholder="'+esc(c.name)+' - عدد الصفحات" value="'+esc(cv)+'" onchange="updCustom(this.dataset.sid,this.dataset.day,this.dataset.cid,this.value);'+(isAdmin?'render()':'')+'">'
         }).join('')
         +'<textarea'+attrs+' placeholder="ملاحظات" onchange="upd(this.dataset.sid,this.dataset.day,\'notes\',this.value)">'+esc(r.notes||'')+'</textarea>'
         +(isAdmin?'<div class="badge">نقاط اليوم: '+pts+'</div>':'')
@@ -54,7 +58,7 @@ function openSettings(){
     h+='<div class="setting"><span>'+x[0]+'</span><input type="number" data-a="'+x[1]+'" data-b="'+x[2]+'" value="'+p[x[1]][x[2]]+'" onchange="setPoint(this.dataset.a,this.dataset.b,this.value)"></div>'
   });
   h+='<div class="setting"><span>النقاط لكل جزء مراجعة</span><input type="number" value="'+p.reviewPerPart+'" onchange="state.tahfiz.points.reviewPerPart=Number(this.value);scheduleSave();render()"></div>';
-  h+='<div style="grid-column:1/-1;border-top:1px solid #e5e7eb;padding-top:12px;margin-top:4px"><div class="sectionTitle" style="font-size:15px">بنود إضافية للتحفيظ</div><div class="row"><input id="newCriterionName" placeholder="اسم البند مثل: الانضباط" style="flex:1"><input id="newCriterionPoints" type="number" min="0" placeholder="النقاط" style="width:110px"><button class="primary" onclick="addTahfizCriterion()">+ إضافة بند</button></div><div id="criteriaList" style="margin-top:10px"></div></div>';
+  h+='<div style="grid-column:1/-1;border-top:1px solid #e5e7eb;padding-top:12px;margin-top:4px"><div class="sectionTitle" style="font-size:15px">بنود إضافية للتحفيظ</div><div class="hint" style="margin-bottom:8px">حدد نقاط الصفحة الواحدة لكل بند، ثم اكتب عدد الصفحات عند تقييم الطالب.</div><div class="row"><input id="newCriterionName" placeholder="اسم البند مثل: الحفظ الجديد" style="flex:1"><input id="newCriterionPoints" type="number" min="0" step="0.5" placeholder="نقاط الصفحة" style="width:130px"><button class="primary" onclick="addTahfizCriterion()">+ إضافة بند</button></div><div id="criteriaList" style="margin-top:10px"></div></div>';
   settingsGrid.innerHTML=h;renderCriteriaList();settingsModal.classList.add('show')
 }
 function renderCriteriaList(){
@@ -62,7 +66,7 @@ function renderCriteriaList(){
   var p=state.tahfiz.points||{};p.custom=p.custom||{};
   var arr=state.tahfiz.criteria||[];
   el.innerHTML=arr.length?arr.map(function(c){
-    return '<div class="setting"><span><b>'+esc(c.name)+'</b><div class="hint">يظهر للعضو بدون نقاط</div></span><span class="row"><input type="number" min="0" data-id="'+esc(c.id)+'" value="'+Number(p.custom[c.id]||0)+'" onchange="setCustomPoint(this.dataset.id,this.value)"><button class="danger" data-id="'+esc(c.id)+'" onclick="removeTahfizCriterion(this.dataset.id)">حذف</button></span></div>'
+    return '<div class="setting"><span><b>'+esc(c.name)+'</b><div class="hint">نقاط الصفحة الواحدة — لا تظهر للعضو</div></span><span class="row"><input type="number" min="0" step="0.5" data-id="'+esc(c.id)+'" value="'+Number(p.custom[c.id]||0)+'" onchange="setCustomPoint(this.dataset.id,this.value)"><button class="danger" data-id="'+esc(c.id)+'" onclick="removeTahfizCriterion(this.dataset.id)">حذف</button></span></div>'
   }).join(''):'<div class="hint">لا توجد بنود إضافية.</div>'
 }
 function setCustomPoint(id,v){state.tahfiz.points.custom=state.tahfiz.points.custom||{};state.tahfiz.points.custom[id]=Number(v);scheduleSave();render()}
