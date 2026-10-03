@@ -1,0 +1,35 @@
+
+:root{--bg:#f6f7fb;--card:#fff;--ink:#172033;--muted:#667085;--line:#e6e8ef;--brand:#1f6f5f;--soft:#eaf5f2;--danger:#b42318}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Tahoma,Arial,sans-serif}
+header{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.brand{font-size:24px;font-weight:800}.sub{font-size:12px;color:var(--muted)}.status{font-size:12px;padding:6px 10px;border-radius:999px;background:var(--soft);color:var(--brand)}
+nav{display:flex;gap:8px}button,.btn,select,input,textarea{font:inherit}button,.btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;cursor:pointer}
+button.primary{background:var(--brand);color:#fff;border-color:var(--brand)}button.danger{color:var(--danger)}button.active{background:var(--ink);color:#fff}
+main{padding:18px;max-width:1800px;margin:auto}.toolbar,.card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 4px 16px #1018280a}
+.toolbar{padding:12px;margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}.card{padding:14px;margin-bottom:14px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}input,select,textarea{border:1px solid var(--line);border-radius:9px;padding:8px;background:#fff}textarea{min-height:42px;resize:vertical}
+.groups{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.hint{color:var(--muted);font-size:13px}
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:12px}table{width:100%;border-collapse:collapse;min-width:1200px;background:#fff}
+th,td{border-bottom:1px solid var(--line);border-left:1px solid var(--line);padding:7px;vertical-align:top}th{background:#f9fafb;position:sticky;top:0;z-index:1;font-size:12px}
+td.name{min-width:170px;font-weight:700;position:sticky;right:0;background:#fff;z-index:2}td.day{min-width:220px}
+.daybox{display:grid;grid-template-columns:1fr 1fr;gap:5px}.daybox textarea{grid-column:1/-1;width:100%}
+.school-day{min-width:790px}
+.school-inline{display:flex;gap:6px;align-items:stretch;flex-wrap:nowrap;min-width:760px}
+.school-inline select{width:125px;min-width:125px}
+.school-inline input.quranField{width:220px;min-width:220px}
+.school-inline textarea{width:220px;min-width:220px;min-height:38px;height:38px;resize:vertical}
+td.tahfiz-day{min-width:790px}
+.tahfiz-inline{display:flex;gap:6px;align-items:stretch;flex-wrap:nowrap;min-width:760px}
+.tahfiz-inline select{width:125px;min-width:125px}
+.tahfiz-inline input.reviewText{width:190px;min-width:190px}
+.tahfiz-inline input.reviewParts{width:110px;min-width:110px}
+.tahfiz-inline textarea{width:220px;min-width:220px;min-height:38px;height:38px;resize:vertical}
+.tahfiz-inline .badge{white-space:nowrap;align-self:center}
+.badge{display:inline-block;padding:3px 7px;border-radius:999px;background:#f2f4f7;font-size:11px}.sectionTitle{font-size:18px;font-weight:800;margin-bottom:10px}
+.modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:30;padding:16px}.modal.show{display:flex}
+.modalbox{background:#fff;border-radius:16px;padding:18px;max-width:620px;width:100%;max-height:90vh;overflow:auto}.modalbox textarea{width:100%;min-height:180px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.setting{display:flex;justify-content:space-between;gap:8px;align-items:center;border:1px solid var(--line);padding:8px;border-radius:10px}.setting input{width:80px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}.kpi{padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff}.kpi b{font-size:22px}
+.massbar{padding:10px;background:#f9fafb;border:1px solid var(--line);border-radius:12px;margin:10px 0}
+@media(max-width:700px){header{position:static}main{padding:10px}.brand{font-size:20px}}
+@media print{header,.toolbar,.groups,.noPrint,.massbar{display:none!important}body{background:white}main{padding:0}.card{box-shadow:none;border:0}}
