@@ -39,7 +39,7 @@ function renderTahfiz(g){
         +'<input class="reviewParts"'+attrs+' type="number" min="0" step="0.25" placeholder="عدد الأجزاء" value="'+esc(r.reviewParts||'')+'" onchange="upd(this.dataset.sid,this.dataset.day,\'reviewParts\',this.value);'+(isAdmin?'render()':'')+'">'
         +(state.tahfiz.criteria||[]).map(function(c){
           var cv=(r.custom||{})[c.id]||'';
-          return '<input'+attrs+' data-cid="'+esc(c.id)+'" type="number" min="0" step="1" title="'+esc(c.name)+'" placeholder="'+esc(c.name)+' - عدد الصفحات" value="'+esc(cv)+'" onchange="updCustom(this.dataset.sid,this.dataset.day,this.dataset.cid,this.value);'+(isAdmin?'render()':'')+'">'
+          return '<input'+attrs+' data-cid="'+esc(c.id)+'" type="number" min="0.5" step="0.5" title="'+esc(c.name)+'" placeholder="'+esc(c.name)+' - عدد الصفحات" value="'+esc(cv)+'" onchange="updCustom(this.dataset.sid,this.dataset.day,this.dataset.cid,this.value);'+(isAdmin?'render()':'')+'">'
         }).join('')
         +'<textarea'+attrs+' placeholder="ملاحظات" onchange="upd(this.dataset.sid,this.dataset.day,\'notes\',this.value)">'+esc(r.notes||'')+'</textarea>'
         +(isAdmin?'<div class="badge">نقاط اليوم: '+pts+'</div>':'')
