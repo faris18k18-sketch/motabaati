@@ -13,6 +13,20 @@ function tahfizPoints(r){
   return a+u+rv+customTotal
 }
 function updCustom(sid,day,id,v){var r=rec(sid,day);r.custom=r.custom||{};r.custom[id]=v;scheduleSave()}
+// Keep the existing table, focus and scroll position while updating scores.
+function updateTahfizPoints(sid){
+  if(!currentUser||currentUser.role!=='admin')return;
+  var row=Array.from(content.querySelectorAll('tr[data-student-id]')).find(function(el){return el.dataset.studentId===sid});
+  if(!row)return;
+  var records=recRoot()[sid]||{},total=0;
+  days.forEach(function(d){
+    var points=tahfizPoints(records[d[0]]||{});
+    total+=points;
+    row.querySelectorAll('.day-points').forEach(function(el){if(el.dataset.day===d[0])el.textContent='نقاط اليوم: '+points});
+  });
+  var weekly=row.querySelector('.week-points');
+  if(weekly)weekly.textContent=total;
+}
 function renderTahfiz(g){
   var root=recRoot(),
       isAdmin=currentUser&&currentUser.role==='admin',
@@ -23,29 +37,29 @@ function renderTahfiz(g){
   h+='</tr></thead><tbody>';
   g.students.forEach(function(s){
     var total=0;
-    h+='<tr><td class="name">'+esc(s.name)+'<br><button class="danger noPrint adminOnlyInline" data-id="'+esc(s.id)+'" onclick="delStudent(this.dataset.id)">حذف</button></td>';
+    h+='<tr data-student-id="'+esc(s.id)+'"><td class="name">'+esc(s.name)+'<br><button class="danger noPrint adminOnlyInline" data-id="'+esc(s.id)+'" onclick="delStudent(this.dataset.id)">حذف</button></td>';
     days.forEach(function(d){
       var r=((root[s.id]||{})[d[0]]||{}),pts=isAdmin?tahfizPoints(r):0;
       if(isAdmin)total+=pts;
       var attrs=' data-sid="'+esc(s.id)+'" data-day="'+d[0]+'"';
       h+='<td class="day tahfiz-day"><div class="tahfiz-inline">'
-        +'<select'+attrs+' onchange="upd(this.dataset.sid,this.dataset.day,\'attendance\',this.value);'+(isAdmin?'render()':'')+'"><option value="">الحضور</option>'
+        +'<select'+attrs+' onchange="upd(this.dataset.sid,this.dataset.day,\'attendance\',this.value);'+(isAdmin?'updateTahfizPoints(this.dataset.sid)':'')+'"><option value="">الحضور</option>'
         +opts([['present','حاضر'],['late','متأخر'],['absent','غائب'],['excused','مستأذن']],r.attendance)
         +'</select>'
-        +'<select'+attrs+' onchange="upd(this.dataset.sid,this.dataset.day,\'uniform\',this.value);'+(isAdmin?'render()':'')+'"><option value="">الزي</option>'
+        +'<select'+attrs+' onchange="upd(this.dataset.sid,this.dataset.day,\'uniform\',this.value);'+(isAdmin?'updateTahfizPoints(this.dataset.sid)':'')+'"><option value="">الزي</option>'
         +opts([['full','كامل'],['partial','ناقص'],['none','غير ملتزم']],r.uniform)
         +'</select>'
         +'<input class="reviewText"'+attrs+' placeholder="المراجعة اليومية" value="'+esc(r.reviewText||'')+'" onchange="upd(this.dataset.sid,this.dataset.day,\'reviewText\',this.value)">'
-        +'<input class="reviewParts"'+attrs+' type="number" min="0" step="0.25" placeholder="عدد الأجزاء" value="'+esc(r.reviewParts||'')+'" onchange="upd(this.dataset.sid,this.dataset.day,\'reviewParts\',this.value);'+(isAdmin?'render()':'')+'">'
+        +'<input class="reviewParts"'+attrs+' type="number" min="0" step="0.25" placeholder="عدد الأجزاء" value="'+esc(r.reviewParts||'')+'" onchange="upd(this.dataset.sid,this.dataset.day,\'reviewParts\',this.value);'+(isAdmin?'updateTahfizPoints(this.dataset.sid)':'')+'">'
         +(state.tahfiz.criteria||[]).map(function(c){
           var cv=(r.custom||{})[c.id]||'';
-          return '<input'+attrs+' data-cid="'+esc(c.id)+'" type="number" min="0.5" step="0.5" title="'+esc(c.name)+'" placeholder="'+esc(c.name)+' - عدد الصفحات" value="'+esc(cv)+'" onchange="updCustom(this.dataset.sid,this.dataset.day,this.dataset.cid,this.value);'+(isAdmin?'render()':'')+'">'
+          return '<input'+attrs+' data-cid="'+esc(c.id)+'" type="number" min="0.5" step="0.5" title="'+esc(c.name)+'" placeholder="'+esc(c.name)+' - عدد الصفحات" value="'+esc(cv)+'" onchange="updCustom(this.dataset.sid,this.dataset.day,this.dataset.cid,this.value);'+(isAdmin?'updateTahfizPoints(this.dataset.sid)':'')+'">'
         }).join('')
         +'<textarea'+attrs+' placeholder="ملاحظات" onchange="upd(this.dataset.sid,this.dataset.day,\'notes\',this.value)">'+esc(r.notes||'')+'</textarea>'
-        +(isAdmin?'<div class="badge">نقاط اليوم: '+pts+'</div>':'')
+        +(isAdmin?'<div class="badge day-points" data-day="'+d[0]+'">نقاط اليوم: '+pts+'</div>':'')
         +'</div></td>';
     });
-    if(isAdmin)h+='<td><b>'+total+'</b></td>';
+    if(isAdmin)h+='<td><b class="week-points">'+total+'</b></td>';
     h+='</tr>';
   });
   h+='</tbody></table></div></div>';
