@@ -52,9 +52,9 @@ async function restoreSession(){
   if(!sessionToken){loginModal.classList.add('show');saveStatus.textContent='غير مسجل';return}
   try{
     const j=await api('get_state');
-    currentUser={username:j.username,role:j.role};state=j.data;ensure();applyRole();loginModal.classList.remove('show');weekDate.value=sundayOf();saveStatus.textContent='متصل بالسحابة ✓';render();
+    currentUser={username:j.username,role:j.role};state=j.data;ensure();recoverPending();applyRole();loginModal.classList.remove('show');weekDate.value=sundayOf();saveStatus.textContent='متصل بالسحابة ✓';render();
   }catch(e){
-    localStorage.removeItem('motabaati2_session');sessionToken='';currentUser=null;loginModal.classList.add('show');saveStatus.textContent='انتهت الجلسة';
+    if(e.status===401){localStorage.removeItem('motabaati2_session');sessionToken='';saveStatus.textContent='انتهت الجلسة'}else{saveStatus.textContent='تعذر الاتصال — أعد المحاولة'}currentUser=null;loginModal.classList.add('show');
   }
 }
 async function login(){
@@ -75,7 +75,7 @@ async function login(){
     localStorage.setItem('motabaati2_session',sessionToken);
     currentUser={username:j.username,role:j.role};
     const s=await api('get_state');
-    state=s.data; ensure(); applyRole();
+    state=s.data; ensure(); recoverPending(); applyRole();
     loginModal.classList.remove('show');
     weekDate.value=sundayOf();
     saveStatus.textContent='متصل بالسحابة ✓';
@@ -132,3 +132,4 @@ function renderSchool(g){
   h+='</tbody></table></div></div>';content.innerHTML=h
 }
 function massAttendance(day){var ids=[].slice.call(document.querySelectorAll('.pick:checked')).map(function(x){return x.value});if(!ids.length)return alert('حدد الطلاب أولًا');var v=prompt('اكتب: present للحاضر، late للمتأخر، absent للغائب، excused للمستأذن','present');if(!v)return;ids.forEach(function(id){rec(id,day).attendance=v});scheduleSave();render()}
+
